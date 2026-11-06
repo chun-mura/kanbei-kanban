@@ -1,0 +1,13 @@
+services:
+  kanbei:
+    build: .
+    ports:
+      - "127.0.0.1:${KANBEI_PORT:-18473}:8787"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "8787"
+      KANBEI_PUBLIC_PORT: "${KANBEI_PORT:-18473}"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
