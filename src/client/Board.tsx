@@ -4,8 +4,10 @@ import {
   KeyboardSensor,
   PointerSensor,
   closestCorners,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -93,7 +95,7 @@ export function Board({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={(args) => detectCollision(board, args)}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={(event) => void onDragEnd(event)}
@@ -128,6 +130,26 @@ export function Board({
       </DragOverlay>
     </DndContext>
   )
+}
+
+// Tall column rects lose to cards in neighbouring columns under closestCorners,
+// so an empty column flanked by cards can never be hit. Pick the column under
+// the pointer first, then compare only that column and its cards.
+function detectCollision(board: BoardData, args: Parameters<CollisionDetection>[0]) {
+  const active = parseDragId(String(args.active.id))
+  if (active?.kind !== 'card' || !args.pointerCoordinates) return closestCorners(args)
+  const columnIds = new Set(board.columns.map((column) => `column:${column.id}`))
+  const [hit] = pointerWithin({
+    ...args,
+    droppableContainers: args.droppableContainers.filter((container) => columnIds.has(String(container.id))),
+  })
+  const column = hit ? board.columns.find((item) => `column:${item.id}` === String(hit.id)) : null
+  if (!column) return closestCorners(args)
+  const ids = new Set([`column:${column.id}`, ...column.cards.map((card) => `card:${card.id}`)])
+  return closestCorners({
+    ...args,
+    droppableContainers: args.droppableContainers.filter((container) => ids.has(String(container.id))),
+  })
 }
 
 function columnUnder(board: BoardData, overId: string | null) {
