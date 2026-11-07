@@ -74,3 +74,8 @@ export function isPriority(value: unknown): value is Priority {
 export function isLabelColor(value: unknown): value is LabelColor {
   return LABEL_COLORS.some((color) => color === value)
 }
+
+export type Project = {
+  id: number
+  name: string
+}

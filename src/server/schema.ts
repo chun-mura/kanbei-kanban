@@ -1,6 +1,12 @@
 import { integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
+export const projects = sqliteTable('projects', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+})
+
 export const columns = sqliteTable('columns', {
+  projectId: integer('project_id').notNull().default(1).references(() => projects.id),
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   position: integer('position').notNull(),
@@ -21,6 +27,7 @@ export const cards = sqliteTable('cards', {
 })
 
 export const labels = sqliteTable('labels', {
+  projectId: integer('project_id').notNull().default(1).references(() => projects.id),
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   color: text('color').notNull(),

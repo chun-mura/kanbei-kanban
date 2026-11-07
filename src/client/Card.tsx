@@ -1,16 +1,25 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { PRIORITY_LABEL, type Card, type Label } from '../shared/types'
 
 type SlipProps = {
   card: Card
   labels: Label[]
   onOpen: () => void
-  onArchive: () => void
+  onArchive: () => Promise<void>
 }
 
 export function SortableSlip({ card, labels, onOpen, onArchive }: SlipProps) {
+  const [pending, setPending] = useState(false)
+  const busy = useRef(false)
+  async function archive() {
+    if (busy.current) return
+    busy.current = true
+    setPending(true)
+    try { await onArchive() }
+    finally { busy.current = false; setPending(false) }
+  }
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `card:${card.id}` })
   const style: CSSProperties = {
     transform: isDragging ? undefined : CSS.Transform.toString(transform),
@@ -28,11 +37,11 @@ export function SortableSlip({ card, labels, onOpen, onArchive }: SlipProps) {
         <span />
         <span />
       </button>
-      <button type="button" className="slip-open" onClick={onOpen}>
+      <button type="button" className="slip-open" disabled={pending} onClick={onOpen}>
         <SlipBody card={card} labels={labels} />
       </button>
-      <button type="button" className="slip-archive" onClick={onArchive}>
-        控えへ
+      <button type="button" className="slip-archive" disabled={pending} aria-label={`${card.title}をアーカイブ`} onClick={() => void archive()}>
+        {pending ? '移動しています…' : 'アーカイブ'}
       </button>
     </article>
   )
@@ -62,7 +71,7 @@ function SlipBody({ card, labels }: { card: Card; labels: Label[] }) {
           ))}
         </span>
       ) : null}
-      {card.priority ? <span className={`seal seal-${card.priority}`}>{PRIORITY_LABEL[card.priority]}</span> : null}
+      {card.priority ? <span className={`seal seal-${card.priority}`} aria-label={`優先度：${PRIORITY_LABEL[card.priority]}`}>{PRIORITY_LABEL[card.priority]}</span> : null}
     </>
   )
 }

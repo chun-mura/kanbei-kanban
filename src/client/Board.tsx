@@ -95,6 +95,12 @@ export function Board({
   return (
     <DndContext
       sensors={sensors}
+      accessibility={{ screenReaderInstructions: { draggable: '並び替えはスペースキーで開始し、矢印キーで移動、スペースキーで確定します。Escapeキーで取り消します。' }, announcements: {
+        onDragStart: () => '並び替えを開始しました。',
+        onDragOver: ({ over }) => over ? '移動先が選択されました。' : '移動先を選んでください。',
+        onDragEnd: ({ over }) => over ? '並び替えを終了しました。' : '移動を取り消しました。',
+        onDragCancel: () => '並び替えを取り消しました。',
+      } }}
       collisionDetection={(args) => detectCollision(board, args)}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -105,7 +111,8 @@ export function Board({
       }}
     >
       <div className="screen">
-      <div className="board">
+      <p className="board-help" id="board-help">カードをクリックして編集 · 持ち手をドラッグして移動<span> · キーボード：持ち手でスペース → 矢印キー → スペース</span></p>
+      <div className="board" role="region" aria-label="カンバンボード" aria-describedby="board-help" tabIndex={0}>
         <SortableContext
           items={board.columns.map((column) => `column:${column.id}`)}
           strategy={stacked ? verticalListSortingStrategy : horizontalListSortingStrategy}

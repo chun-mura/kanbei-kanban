@@ -2,7 +2,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Card, Column, Label } from '../shared/types'
-import { api } from './api'
+import { useApi } from './ProjectContext'
 import { SortableSlip } from './Card'
 
 type Props = {
@@ -15,6 +15,7 @@ type Props = {
 }
 
 export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCard, onRefresh }: Props) {
+  const api = useApi()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(column.name)
   const [error, setError] = useState<string | null>(null)
@@ -108,7 +109,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
               void commitRename(event.currentTarget.value)
             }}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') {
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.keyCode !== 229) {
                 event.preventDefault()
                 event.currentTarget.blur()
               }
@@ -121,11 +122,11 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
             }}
           />
         ) : (
-          <button type="button" className="well-name" onClick={() => setEditing(true)}>
+          <button type="button" className="well-name" title="列名を変更" aria-label={`${column.name}：列名を変更`} onClick={() => setEditing(true)}>
             {column.name}
           </button>
         )}
-        <span className="well-count">{column.cards.length}</span>
+        <span className="well-count" aria-label={`${column.cards.length}件のカード`}>{column.cards.length}</span>
         {confirmDelete ? (
           <span className="confirm-delete">
             <button type="button" className="text-button" onClick={() => void remove()}>
@@ -136,7 +137,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
             </button>
           </span>
         ) : (
-          <button type="button" className="text-button" onClick={() => setConfirmDelete(true)}>
+          <button type="button" className="text-button" disabled={column.cards.length > 0} title={column.cards.length > 0 ? 'カードを移動またはアーカイブすると列を削除できます' : '空の列を削除'} aria-label={`${column.name}の列を削除`} onClick={() => setConfirmDelete(true)}>
             削除
           </button>
         )}
@@ -155,7 +156,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
                 card={card}
                 labels={labels}
                 onOpen={() => onOpenCard(card)}
-                onArchive={() => void onArchiveCard(card).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : '控えに移せませんでした'))}
+                onArchive={() => onArchiveCard(card).catch((caught: unknown) => setError(caught instanceof Error ? caught.message : 'アーカイブできませんでした'))}
               />
             ))}
           </SortableContext>
@@ -167,12 +168,14 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
 }
 
 export function NewColumn({ onCreated }: { onCreated: () => Promise<void> }) {
+  const api = useApi()
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (pending) return
     const next = name.trim()
     if (!next) {
       setError('列の名前を書いてください')
@@ -192,12 +195,16 @@ export function NewColumn({ onCreated }: { onCreated: () => Promise<void> }) {
   }
 
   return (
-    <form className="well-new" onSubmit={(event) => void submit(event)}>
+    <form className="well-new" onKeyDown={(event) => {
+      if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault()
+    }} onSubmit={(event) => void submit(event)}>
+      <h2 className="new-column-title">新しい列</h2>
       <label>
         <span className="visually-hidden">新しい列の名前</span>
         <input
           aria-label="新しい列の名前"
-          placeholder="列の名前"
+          placeholder="例：確認待ち"
+          disabled={pending}
           value={name}
           maxLength={40}
           onChange={(event) => {
@@ -207,7 +214,7 @@ export function NewColumn({ onCreated }: { onCreated: () => Promise<void> }) {
         />
       </label>
       <button type="submit" className="btn" disabled={pending}>
-        列を足す
+        {pending ? '追加しています…' : '＋ 列を追加'}
       </button>
       {error ? (
         <p className="well-error" role="alert">
@@ -227,6 +234,7 @@ function Composer({
   hasCards: boolean
   onCreated: () => Promise<void>
 }) {
+  const api = useApi()
   const [open, setOpen] = useState(!hasCards)
   const [title, setTitle] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -253,9 +261,10 @@ function Composer({
 
   async function submit(event: FormEvent) {
     event.preventDefault()
+    if (pending) return
     const next = title.trim()
     if (!next) {
-      setError('題を書いてください')
+      setError('タイトルを入力してください')
       inputRef.current?.focus()
       return
     }
@@ -267,7 +276,7 @@ function Composer({
       await onCreated()
       inputRef.current?.focus()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '札を置けませんでした')
+      setError(caught instanceof Error ? caught.message : 'カードを追加できませんでした')
     } finally {
       setPending(false)
     }
@@ -283,17 +292,19 @@ function Composer({
           setOpen(true)
         }}
       >
-        札を足す
+        ＋ カードを追加
       </button>
     )
   }
 
   return (
-    <form className="composer" onSubmit={(event) => void submit(event)}>
+    <form className="composer" onSubmit={(event) => void submit(event)} onKeyDown={(event) => {
+      if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) event.preventDefault()
+    }}>
       <input
         ref={inputRef}
-        aria-label="札の題"
-        placeholder="題を書いて Enter"
+        aria-label="新しいカードのタイトル"
+        placeholder="カードのタイトル"
         value={title}
         maxLength={120}
         disabled={pending}
@@ -310,10 +321,10 @@ function Composer({
       />
       <div className="composer-actions">
         <button type="submit" className="btn" disabled={pending}>
-          置く
+          {pending ? '追加しています…' : 'カードを追加'}
         </button>
         {hasCards ? (
-          <button type="button" className="text-button" onClick={close}>
+          <button type="button" className="text-button" disabled={pending} onClick={close}>
             閉じる
           </button>
         ) : null}

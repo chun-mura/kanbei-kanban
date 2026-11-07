@@ -1,4 +1,4 @@
-import type { Archive, Board, Card, Label, LabelColor, Layout, Priority } from '../shared/types'
+import type { Archive, Board, Card, Label, LabelColor, Layout, Priority, Project } from '../shared/types'
 
 export class ApiError extends Error {}
 
@@ -32,22 +32,33 @@ export type CardInput = {
   labelIds: number[]
 }
 
-export const api = {
-  board: () => request<Board>('/api/board'),
-  archive: () => request<Archive>('/api/archive'),
-  createColumn: (name: string) => request('/api/columns', { method: 'POST', body: JSON.stringify({ name }) }),
-  renameColumn: (id: number, name: string) =>
-    request(`/api/columns/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
-  deleteColumn: (id: number) => request<void>(`/api/columns/${id}`, { method: 'DELETE' }),
-  createCard: (input: CardInput & { columnId: number }) =>
-    request<Card>('/api/cards', { method: 'POST', body: JSON.stringify(input) }),
-  updateCard: (id: number, input: CardInput) =>
-    request<Card>(`/api/cards/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
-  archiveCard: (id: number) => request<void>(`/api/cards/${id}/archive`, { method: 'POST' }),
-  restoreCard: (id: number) => request<void>(`/api/cards/${id}/restore`, { method: 'POST' }),
-  deleteCard: (id: number) => request<void>(`/api/cards/${id}`, { method: 'DELETE' }),
-  createLabel: (input: { name: string; color: LabelColor }) =>
-    request<Label>('/api/labels', { method: 'POST', body: JSON.stringify(input) }),
-  deleteLabel: (id: number) => request<void>(`/api/labels/${id}`, { method: 'DELETE' }),
-  saveLayout: (layout: Layout) => request<void>('/api/board/layout', { method: 'POST', body: JSON.stringify(layout) }),
+export const projectsApi = {
+  list: () => request<Project[]>('/api/projects'),
+  create: (name: string) => request<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name }) }),
+  rename: (id: number, name: string) =>
+    request<Project>(`/api/projects/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+}
+
+export function createApi(projectId: number) {
+  const scopedRequest = <T = unknown>(path: string, init?: RequestInit) =>
+    request<T>(path.replace('/api', `/api/projects/${projectId}`), init)
+  return {
+    board: () => scopedRequest<Board>('/api/board'),
+    archive: () => scopedRequest<Archive>('/api/archive'),
+    createColumn: (name: string) => scopedRequest('/api/columns', { method: 'POST', body: JSON.stringify({ name }) }),
+    renameColumn: (id: number, name: string) =>
+      scopedRequest(`/api/columns/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+    deleteColumn: (id: number) => scopedRequest<void>(`/api/columns/${id}`, { method: 'DELETE' }),
+    createCard: (input: CardInput & { columnId: number }) =>
+      scopedRequest<Card>('/api/cards', { method: 'POST', body: JSON.stringify(input) }),
+    updateCard: (id: number, input: CardInput) =>
+      scopedRequest<Card>(`/api/cards/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+    archiveCard: (id: number) => scopedRequest<void>(`/api/cards/${id}/archive`, { method: 'POST' }),
+    restoreCard: (id: number) => scopedRequest<void>(`/api/cards/${id}/restore`, { method: 'POST' }),
+    deleteCard: (id: number) => scopedRequest<void>(`/api/cards/${id}`, { method: 'DELETE' }),
+    createLabel: (input: { name: string; color: LabelColor }) =>
+      scopedRequest<Label>('/api/labels', { method: 'POST', body: JSON.stringify(input) }),
+    deleteLabel: (id: number) => scopedRequest<void>(`/api/labels/${id}`, { method: 'DELETE' }),
+    saveLayout: (layout: Layout) => scopedRequest<void>('/api/board/layout', { method: 'POST', body: JSON.stringify(layout) }),
+  }
 }

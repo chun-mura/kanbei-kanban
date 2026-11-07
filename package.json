@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n server,web -c gray,cyan \"tsx watch src/server/index.ts\" \"vite\"",
+    "dev:docker": "concurrently -k -n server,web -c gray,cyan \"tsx watch src/server/index.ts\" \"vite --host 0.0.0.0\"",
     "serve": "NODE_ENV=production tsx src/server/index.ts",
     "start": "vite build && npm run serve",
     "test": "vitest run",
