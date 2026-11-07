@@ -26,7 +26,7 @@ export function SortableSlip({ card, labels, onOpen, onArchive }: SlipProps) {
     transition,
   }
   return (
-    <article
+    <li
       ref={setNodeRef}
       style={style}
       className={isDragging ? 'slip is-dragging' : 'slip'}
@@ -40,10 +40,14 @@ export function SortableSlip({ card, labels, onOpen, onArchive }: SlipProps) {
       <button type="button" className="slip-open" disabled={pending} onClick={onOpen}>
         <SlipBody card={card} labels={labels} />
       </button>
-      <button type="button" className="slip-archive" disabled={pending} aria-label={`${card.title}をアーカイブ`} onClick={() => void archive()}>
-        {pending ? '移動しています…' : 'アーカイブ'}
+      <button type="button" className="slip-archive" disabled={pending} aria-label={pending ? `${card.title}をアーカイブしています` : `${card.title}をアーカイブ`} title="アーカイブ" onClick={() => void archive()}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="5" rx="1" />
+          <path d="M5 8v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4" />
+        </svg>
+        {pending ? <span className="visually-hidden" role="status">アーカイブしています…</span> : null}
       </button>
-    </article>
+    </li>
   )
 }
 
@@ -60,7 +64,12 @@ function SlipBody({ card, labels }: { card: Card; labels: Label[] }) {
   const marks = labels.filter((label) => card.labelIds.includes(label.id))
   return (
     <>
-      <span className="slip-title">{card.title}</span>
+      <span className="slip-heading">
+        <span className={`seal${card.priority ? ` seal-${card.priority}` : ' seal-none'}`} aria-label={card.priority ? `優先度：${PRIORITY_LABEL[card.priority]}` : undefined} aria-hidden={card.priority ? undefined : true}>
+          {card.priority ? PRIORITY_LABEL[card.priority] : '—'}
+        </span>
+        <span className="slip-title">{card.title}</span>
+      </span>
       {note ? <span className="slip-note">{note}</span> : null}
       {marks.length > 0 ? (
         <span className="marks">
@@ -71,7 +80,6 @@ function SlipBody({ card, labels }: { card: Card; labels: Label[] }) {
           ))}
         </span>
       ) : null}
-      {card.priority ? <span className={`seal seal-${card.priority}`} aria-label={`優先度：${PRIORITY_LABEL[card.priority]}`}>{PRIORITY_LABEL[card.priority]}</span> : null}
     </>
   )
 }

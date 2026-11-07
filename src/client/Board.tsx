@@ -13,7 +13,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { layoutOf, moveCard, moveColumn, parseDragId } from '../shared/layout'
 import type { Board as BoardData, Card } from '../shared/types'
 import { SlipFace } from './Card'
@@ -40,6 +40,7 @@ export function Board({
   onArchiveCard,
   onRefresh,
 }: Props) {
+  const newColumnMenu = useRef<HTMLDetailsElement>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [overColumnId, setOverColumnId] = useState<number | null>(null)
   const [stacked, setStacked] = useState(false)
@@ -111,7 +112,27 @@ export function Board({
       }}
     >
       <div className="screen">
-      <p className="board-help" id="board-help">カードをクリックして編集 · 持ち手をドラッグして移動<span> · キーボード：持ち手でスペース → 矢印キー → スペース</span></p>
+      <div className="board-toolbar">
+        <p className="board-help" id="board-help">カードをクリックして編集 · 持ち手をドラッグして移動<span> · キーボード：持ち手でスペース → 矢印キー → スペース</span></p>
+        <details className="new-column-menu" ref={newColumnMenu} onToggle={(event) => {
+          if (event.currentTarget.open) event.currentTarget.querySelector('input')?.focus()
+        }} onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            event.currentTarget.open = false
+            event.currentTarget.querySelector('summary')?.focus()
+          }
+        }}>
+          <summary>＋ 列を追加</summary>
+          <NewColumn onCreated={async () => {
+            await onRefresh()
+            if (newColumnMenu.current) {
+              newColumnMenu.current.open = false
+              newColumnMenu.current.querySelector('summary')?.focus()
+            }
+          }} />
+        </details>
+      </div>
       <div className="board" role="region" aria-label="カンバンボード" aria-describedby="board-help" tabIndex={0}>
         <SortableContext
           items={board.columns.map((column) => `column:${column.id}`)}
@@ -129,7 +150,6 @@ export function Board({
             />
           ))}
         </SortableContext>
-        <NewColumn onCreated={onRefresh} />
       </div>
       </div>
       <DragOverlay dropAnimation={reducedMotion ? null : { duration: 180, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>

@@ -246,16 +246,16 @@ button:active {
 }
 
 .well {
-  width: 360px;
-  flex: 0 0 360px;
-  min-width: 0;
+  width: auto;
+  flex: 0 0 calc((100% - 32px) / 3);
+  min-width: 360px;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background: var(--gold);
   color: var(--sumi);
-  padding: 12px 12px 14px;
+  padding: 12px 16px 14px;
 }
 
 .well.is-dragging {
@@ -458,33 +458,35 @@ button:active {
 .slip {
   position: relative;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr) 48px;
   align-items: start;
   width: 100%;
-  min-height: 72px;
+  min-height: 56px;
   margin: 0;
-  padding: 8px 8px 6px 2px;
-  border: 1px solid oklch(0.7 0.06 78);
-  border-radius: var(--radius-edge);
-  background: var(--shikishi);
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
   color: var(--sumi);
   text-align: left;
 }
 
 .slip-handle {
   grid-column: 1;
-  grid-row: 1 / span 2;
-  width: 36px;
+  grid-row: 1;
+  width: 32px;
+  min-height: 44px;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: grab;
 }
 
 .slip-handle span {
   display: block;
-  width: 12px;
+  width: 10px;
   height: 1px;
   background: var(--sumi-soft);
 }
@@ -495,24 +497,34 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 6px 40px 0 4px;
+  min-height: 44px;
+  padding: 9px 4px;
   color: inherit;
   text-align: left;
   cursor: pointer;
   font: inherit;
 }
 
+.slip-heading { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.slip-heading .slip-title { flex: 1; }
+.slip-open > .slip-note, .slip-open > .marks { margin-left: 30px; }
+
 .slip-archive {
-  grid-column: 2;
-  grid-row: 2;
-  justify-self: start;
-  margin: 2px 0 0 4px;
-  padding: 0 8px;
+  grid-column: 3;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  margin: 0 0 0 4px;
+  padding: 0 6px;
   color: var(--sumi-soft);
+  background: transparent;
+  box-shadow: none;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -526,9 +538,9 @@ button:active {
   align-items: flex-start;
   gap: 8px;
   width: min(276px, calc(100vw - 64px));
-  padding: 16px 40px 14px 16px;
-  box-shadow: 0 18px 28px oklch(0.12 0.02 55 / 0.4);
-  rotate: 1deg;
+  padding: 12px 16px;
+  background: var(--shikishi);
+  box-shadow: 0 6px 16px oklch(0.12 0.02 55 / 0.25);
   cursor: grabbing;
 }
 
@@ -550,7 +562,7 @@ button:active {
   font-size: 13px;
   line-height: 1.45;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -588,19 +600,20 @@ button:active {
 .mark-fuji { --mark: oklch(0.4 0.07 310); }
 
 .seal {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 26px;
-  height: 26px;
-  display: grid;
+  position: static;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
   place-items: center;
-  border-radius: var(--radius-edge);
-  font-family: var(--font-mincho);
-  font-size: 13px;
+  border-radius: 0;
+  font-family: var(--font-gothic);
+  font-size: 11px;
   line-height: 1;
   pointer-events: none;
 }
+
+.seal-none { color: var(--sumi-soft); }
 
 .seal-low,
 .seal-mid {
@@ -856,8 +869,8 @@ button:disabled {
     color: var(--sumi);
   }
 
-  .slip:hover {
-    background: oklch(0.99 0.008 94);
+  .slip:hover, .slip:focus-within {
+    background: oklch(0.975 0.012 92 / 0.65);
   }
 }
 
@@ -996,20 +1009,20 @@ button:disabled {
 #main-content { min-height: 0; flex: 1; display: flex; flex-direction: column; }
 .screen { width: auto; max-width: none; height: auto; min-height: 0; flex: 1; display: flex; flex-direction: column; }
 .screen::after { display: none; }
-.board { min-height: 0; flex: 1; height: auto; gap: 12px; scrollbar-color: var(--gold) var(--wood-deep); scrollbar-width: auto; }
+.board { min-height: 0; flex: 1; height: auto; gap: 16px; scrollbar-color: var(--gold) var(--wood-deep); scrollbar-width: auto; }
 .board-help { flex-shrink: 0; margin: 0 4px 10px; color: var(--light); font-size: 12px; line-height: 1.7; }
-.well { background: oklch(0.89 0.04 88); }
+.well { background: oklch(0.955 0.018 90); }
 .well-name { overflow-wrap: anywhere; letter-spacing: 0; font-size: 20px; }
 .well-head { grid-template-columns: 40px minmax(0, 1fr) auto auto; }
 .well-count { padding: 2px 6px; background: oklch(0.27 0.025 55 / 0.07); font-size: 13px; }
-.well-slips { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.well-slips { list-style: none; margin: 0; padding: 0; gap: 0; border-top: 1px solid var(--line); overscroll-behavior: contain; scrollbar-gutter: stable; }
 .well-new { border-color: oklch(0.84 0.07 88 / 0.5); }
 .new-column-title { margin: 0; font-size: 15px; font-weight: 500; }
 .grip, .slip-handle { touch-action: none; }
-.slip { border: 0; box-shadow: 0 1px 3px oklch(0.16 0.015 55 / 0.18); }
-.slip-title { font-family: var(--font-gothic); font-size: 16px; letter-spacing: 0; line-height: 1.6; }
+.slip { box-shadow: none; }
+.slip-title { font-family: var(--font-gothic); font-size: 15px; letter-spacing: 0; line-height: 1.6; }
 .slip-archive { font-size: 12px; }
-.slip-open { padding-right: 34px; }
+
 .btn, .text-button, .views button, .add-slip, .slip-archive, .project-picker select { min-height: 44px; }
 button { min-width: 24px; }
 .mark { cursor: default; }
@@ -1084,7 +1097,7 @@ input::placeholder, textarea::placeholder { color: var(--sumi-soft); opacity: 1;
   .screen { margin: 0 8px 16px; padding: 8px; }
   .board { flex: auto; }
   .board-help { margin-bottom: 8px; font-size: 11px; }
-  .well { min-height: 200px; }
+  .well { min-height: 200px; min-width: 0; }
   .well-slips { overflow: visible; }
   .well-new { min-height: 0; }
   .ledger { margin: 0 8px 16px; padding: 20px 16px; }
@@ -1104,3 +1117,38 @@ input::placeholder, textarea::placeholder { color: var(--sumi-soft); opacity: 1;
 select { touch-action: manipulation; }
 .notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .notice p { flex: 1 1 20rem; margin: 0; overflow-wrap: anywhere; }
+
+.well-slips:empty { border-top: 0; }
+.slip:focus-within { background: oklch(0.975 0.012 92 / 0.65); }
+.slip :focus-visible { outline-offset: -2px; }
+
+.slip-archive svg { width: 18px; height: 18px; }
+.slip-archive:focus-visible { color: var(--sumi); }
+@media (hover: hover) {
+  .slip-archive:hover { color: var(--sumi); }
+}
+
+.board-toolbar { display: flex; align-items: center; gap: 16px; margin: 0 4px 8px; flex-shrink: 0; }
+.board-toolbar .board-help { flex: 1; margin: 0; }
+.new-column-menu { position: relative; flex-shrink: 0; }
+.new-column-menu summary { display: flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 13px; color: var(--gold); cursor: pointer; list-style: none; }
+.new-column-menu summary::-webkit-details-marker { display: none; }
+.new-column-menu[open] summary { background: var(--wood); }
+.new-column-menu .well-new { position: absolute; z-index: 4; right: 0; top: calc(100% + 4px); width: min(280px, calc(100vw - 48px)); background: var(--wood); box-shadow: 0 8px 24px oklch(0 0 0 / 0.25); }
+.slip { min-height: 48px; padding: 2px 0; flex-shrink: 0; }
+.slip-open { display: grid; grid-template-columns: minmax(0, 1fr) fit-content(32%); align-items: center; gap: 4px 12px; }
+.slip-heading { grid-column: 1; grid-row: 1; }
+.slip-open > .marks { grid-column: 2; grid-row: 1; margin-left: 0; justify-content: flex-end; min-width: 0; }
+.slip-open > .marks .mark { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; line-height: 24px; }
+.slip-open > .slip-note { grid-column: 1 / -1; grid-row: 2; }
+@media (hover: hover) {
+  .new-column-menu summary:hover { background: var(--wood); }
+}
+@media (max-width: 720px) {
+  .board-toolbar { align-items: flex-start; gap: 8px; }
+  .board-toolbar .board-help { padding-top: 8px; }
+  .new-column-menu summary { padding: 0 8px; font-size: 12px; }
+  .slip-open { display: flex; gap: 4px; }
+  .slip-open > .marks { margin-left: 30px; justify-content: flex-start; }
+  .slip-open > .marks .mark { white-space: normal; line-height: 1.5; padding-block: 3px; }
+}

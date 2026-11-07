@@ -21,7 +21,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const cancelRename = useRef(false)
-  const listRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `column:${column.id}`,
   })
@@ -148,7 +148,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
         </p>
       ) : null}
       <div className="well-main">
-        <div className="well-slips" ref={listRef}>
+        <ul className="well-slips" ref={listRef} aria-label={`${column.name}のカード`}>
           <SortableContext items={column.cards.map((card) => `card:${card.id}`)} strategy={verticalListSortingStrategy}>
             {column.cards.map((card) => (
               <SortableSlip
@@ -160,7 +160,7 @@ export function ColumnLane({ column, labels, dropTarget, onOpenCard, onArchiveCa
               />
             ))}
           </SortableContext>
-        </div>
+        </ul>
         <Composer columnId={column.id} hasCards={column.cards.length > 0} onCreated={created} />
       </div>
     </section>
